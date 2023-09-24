@@ -46,10 +46,18 @@
                   <el-menu-item index="1-1" @click="navigateToChildProblem"
                     >儿童问题池</el-menu-item
                   >
-                  <el-menu-item index="1-2" @click="navigateToProblemManage">问题列表管理</el-menu-item>
-                  <el-menu-item index="1-3" @click="navigateToChatPlatform">交流互助论坛</el-menu-item>
+                  <el-menu-item index="1-2" @click="navigateToProblemManage"
+                    >问题列表管理</el-menu-item
+                  >
+                  <el-menu-item index="1-3" @click="navigateToChatPlatform"
+                    >交流互助论坛</el-menu-item
+                  >
                 </el-sub-menu>
-                <el-sub-menu index="3" class="fatherMenu" @click="navigateToPersonal">
+                <el-sub-menu
+                  index="3"
+                  class="fatherMenu"
+                  @click="navigateToPersonal"
+                >
                   <template #title>
                     <img
                       src="../assets/icon-img.png"
@@ -64,12 +72,98 @@
           </el-row>
         </div>
         <div class="mainBox">
-            <div class="top">
-                  top
+          <div class="top">
+            <div class="left">
+              <div class="avl">
+                <el-avatar :size="100" :src="circleUrl" />
+              </div>
+              <div class="per">
+                <div class="info">
+                  <span>用户名：</span>
+                  <div class="xiugai">
+                    <span>{{ user.name }}</span>
+                    <span @click="ModifyName" class="xiu">修改</span>
+                  </div>
+                </div>
+                <div class="info">
+                  <span>账户ID：</span>
+                  <span>{{ user.id }}</span>
+                </div>
+                <div class="info">
+                  <span>注册时间：</span>
+                  <span>{{ user.time }}</span>
+                </div>
+              </div>
             </div>
-            <div class="bottom">
-                  bottom
+            <div class="right">
+              <div class="info">
+                <span>实名认证：</span>
+                <span class="identify">{{ user.identify }}</span>
+              </div>
+              <div class="info">
+                <span>手机号码：</span>
+                <div class="xiugai">
+                  <span>{{ user.phone }}</span>
+                  <span @click="Modify" class="xiu">修改</span>
+                </div>
+              </div>
             </div>
+          </div>
+          <div class="bottom">
+            <div class="nav">
+              <button class="basicInfo">基础信息</button>
+              <button class="nameIdentify">实名认证</button>
+            </div>
+            <div class="form" v-show="showStatus">
+              <el-form
+                ref="ruleFormRef"
+                :model="ruleForm"
+                :rules="rules"
+                label-width="120px"
+                class="demo-ruleForm"
+                :size="formSize"
+                status-icon
+              >
+                <el-form-item label="年龄" prop="age">
+                  <el-input v-model="ruleForm.age" />
+                </el-form-item>
+                <el-form-item label="性别" prop="sex">
+                  <el-radio-group v-model="ruleForm.resource">
+                    <el-radio label="男" />
+                    <el-radio label="女" />
+                  </el-radio-group>
+                </el-form-item>
+                <el-form-item label="职业" prop="job">
+                  <el-input v-model="ruleForm.age" />
+                </el-form-item>
+                <el-form-item label="所在区域" prop="region">
+                  <el-select
+                    v-model="ruleForm.region"
+                    placeholder="Activity zone"
+                  >
+                    <el-option label="Zone one" value="shanghai" />
+                    <el-option label="Zone two" value="beijing" />
+                  </el-select>
+                </el-form-item>
+                <el-form-item label="擅长解决的问题" prop="type">
+                  <el-select-v2
+                    v-model="ruleForm.count"
+                    placeholder="Activity count"
+                    :options="options"
+                  />
+                </el-form-item>
+                <el-form-item label="Activity form" prop="desc">
+                  <el-input v-model="ruleForm.desc" type="textarea" />
+                </el-form-item>
+                <el-form-item>
+                  <el-button type="primary" @click="submitForm(ruleFormRef)">
+                    Create
+                  </el-button>
+                  <el-button @click="resetForm(ruleFormRef)">Reset</el-button>
+                </el-form-item>
+              </el-form>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -77,7 +171,8 @@
 </template>
 <script lang="ts">
 import router from "@/router";
-import { defineComponent, ref } from "vue";
+import { FormInstance, FormRules } from "element-plus";
+import { defineComponent, ref, reactive } from "vue";
 export default defineComponent({
   name: "Personal",
   components: {},
@@ -89,7 +184,7 @@ export default defineComponent({
     const handleImageClick = (row: any) => {
       console.log(row);
     };
-        const navigateToChildProblem = () => {
+    const navigateToChildProblem = () => {
       router.push("/childProblem");
     };
     const navigateToProblemManage = () => {
@@ -101,8 +196,125 @@ export default defineComponent({
     const navigateToPersonal = () => {
       router.push("/personal");
     };
+    const user = {
+      name: "张三",
+      id: "123456",
+      time: "2021-05-01",
+      identify: "已认证",
+      phone: "12345678910",
+    };
+    const ModifyName = () => {
+      console.log("修改用户名");
+    };
+    const Modify = () => {
+      console.log("修改手机号码");
+    };
+    const circleUrl =
+      "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png";
+
+    interface RuleForm {
+      age: string;
+      region: string;
+      job: string;
+      delivery: boolean;
+      type: string[];
+      sex: string;
+      desc: string;
+    }
+
+    const formSize = ref("default");
+    const ruleFormRef = ref<FormInstance>();
+    const ruleForm = reactive<RuleForm>({
+      age: "Hello",
+      region: "",
+      job: "",
+      delivery: false,
+      type: [],
+      sex: "",
+      desc: "",
+    });
+
+    const rules = reactive<FormRules<RuleForm>>({
+      age: [
+        {
+          required: true,
+          message: "请填写你的年龄",
+          trigger: "blur",
+        },
+      ],
+      region: [
+        {
+          required: true,
+          message: "请选择你的所在区域",
+          trigger: "blur",
+        },
+      ],
+      job: [
+        {
+          required: true,
+          message: "请填写你的职业",
+          trigger: "blur",
+        },
+      ],
+      type: [
+        {
+          type: "array",
+          required: false,
+          message: "Please select at least one activity type",
+          trigger: "change",
+        },
+      ],
+      sex: [
+        {
+          required: true,
+          message: "请选择性别",
+          trigger: "blur",
+        },
+      ],
+      desc: [
+        {
+          required: true,
+          message: "Please input activity form",
+          trigger: "blur",
+        },
+      ],
+    });
+
+    const submitForm = async (formEl: FormInstance | undefined) => {
+      if (!formEl) return;
+      await formEl.validate((valid, fields) => {
+        if (valid) {
+          console.log("submit!");
+        } else {
+          console.log("error submit!", fields);
+        }
+      });
+    };
+
+    const resetForm = (formEl: FormInstance | undefined) => {
+      if (!formEl) return;
+      formEl.resetFields();
+    };
+
+    const options = Array.from({ length: 10000 }).map((_, idx) => ({
+      value: `${idx + 1}`,
+      label: `${idx + 1}`,
+    }));
+    const showStatus = ref(true);
     return {
       searchUser,
+      user,
+      circleUrl,
+      ruleForm,
+      rules,
+      formSize,
+      ruleFormRef,
+      options,
+      showStatus,
+      submitForm,
+      resetForm,
+      Modify,
+      ModifyName,
       navigateToHome,
       handleImageClick,
       navigateToChildProblem,
@@ -116,6 +328,7 @@ export default defineComponent({
 
 <style lang="less" scoped>
 .myScrollbar {
+  background-color: #e9f3ef;
   &::-webkit-scrollbar {
     width: 6px; /* 滚动条宽度 */
     height: 6px; /* 滚动条高度 */
@@ -189,6 +402,98 @@ export default defineComponent({
     .mainBox {
       width: 100%;
       height: 100%;
+      .top {
+        display: flex;
+        background-color: #fff;
+        margin: 10px 20px 15px 20px;
+        justify-content: space-between;
+        .left {
+          background-color: #fff;
+          display: flex;
+          align-items: center;
+          .avl {
+            margin: 20px;
+          }
+          .per {
+            .info {
+              margin: 10px;
+              .xiugai {
+                width: 100px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                span {
+                  cursor: pointer;
+                }
+                .xiu {
+                  color: #7aa2ff;
+                }
+              }
+            }
+          }
+        }
+        .right {
+          background-color: #fff;
+          display: flex;
+          flex-direction: column;
+          padding-top: 30px;
+          margin-right: 200px;
+          .info {
+            margin: 10px;
+            .identify {
+              width: 70px;
+              height: 26px;
+              background-color: #e8ffea;
+              display: flex;
+              justify-content: center;
+              align-items: center;
+              color: #0bb976;
+              border-radius: 5px;
+              font-weight: bold;
+            }
+            .xiugai {
+              width: 150px;
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              span {
+                cursor: pointer;
+              }
+              .xiu {
+                color: #7aa2ff;
+              }
+            }
+          }
+        }
+      }
+      .bottom {
+        margin: 10px 20px 15px 20px;
+        background-color: #fff;
+        .nav {
+          display: flex;
+          padding: 20px;
+          .nameIdentify {
+            border: none;
+            color: #888;
+            background-color: #fff;
+            font-weight: bold;
+            margin-left: 30px;
+          }
+          .basicInfo {
+            width: 120px;
+            height: 40px;
+            border-radius: 10px;
+            border: none;
+            background-color: #e1f6ee;
+            color: #0bb976;
+            font-weight: bold;
+          }
+        }
+        .form {
+          padding: 40px;
+          width: 50%;
+        }
+      }
     }
   }
 }
