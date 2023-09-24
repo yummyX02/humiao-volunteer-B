@@ -106,9 +106,7 @@
               <el-table-column prop="describe" label="具体描述" width="220" />
               <el-table-column prop="operate" label="操作" width="260" >
                 <template v-slot="scope">
-                  <img src="../assets/icon-dangan.png" alt="">
-                <a @click="handleImageClick(scope.row)">匹配</a>
-                <span>不感兴趣</span>
+                <a @click="handleImageClick(scope.row)">处理解惑</a>
               </template>
               </el-table-column>
             </el-table>
@@ -122,7 +120,7 @@
 import router from "@/router";
 import { defineComponent, ref } from "vue";
 export default defineComponent({
-  name: "ChildProblemView",
+  name: "ChatPlatform",
   components: {},
   setup() {
     const navigateToHome = () => {
@@ -141,9 +139,6 @@ export default defineComponent({
     const navigateToPersonal = () => {
       router.push("/personal");
     };
-    const handleImageClick = (row: any) => {
-      console.log(row);
-    };
     return {
       searchUser,
       navigateToHome,
@@ -151,7 +146,6 @@ export default defineComponent({
       navigateToProblemManage,
       navigateToChatPlatform,
       navigateToPersonal,
-      handleImageClick,
     };
   },
 });

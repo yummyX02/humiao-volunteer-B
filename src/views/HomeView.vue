@@ -47,10 +47,10 @@
                   <el-menu-item index="1-1" @click="navigateToChildProblem"
                     >儿童问题池</el-menu-item
                   >
-                  <el-menu-item index="1-2">问题列表管理</el-menu-item>
-                  <el-menu-item index="1-3">交流互助论坛</el-menu-item>
+                  <el-menu-item index="1-2" @click="navigateToProblemManage">问题列表管理</el-menu-item>
+                  <el-menu-item index="1-3" @click="navigateToChatPlatform">交流互助论坛</el-menu-item>
                 </el-sub-menu>
-                <el-sub-menu index="3" class="fatherMenu">
+                <el-sub-menu index="3" class="fatherMenu" @click="navigateToPersonal">
                   <template #title>
                     <img
                       src="../assets/icon-img.png"
@@ -628,6 +628,15 @@ export default defineComponent({
     const navigateToChildProblem = () => {
       router.push("/childProblem");
     };
+    const navigateToProblemManage = () => {
+      router.push("/problemManage");
+    };
+    const navigateToChatPlatform = () => {
+      router.push("/chatPlatform");
+    };
+    const navigateToPersonal = () => {
+      router.push("/personal");
+    };
 
     onMounted(() => {
       echartInit();
@@ -642,6 +651,9 @@ export default defineComponent({
       handleOpen,
       handleClose,
       navigateToChildProblem,
+      navigateToProblemManage,
+      navigateToChatPlatform,
+      navigateToPersonal,
     };
   },
 });
@@ -812,10 +824,10 @@ export default defineComponent({
               .mesInfo {
                 width: 100%;
                 height: 50px;
-                margin-top: 5px;
-                margin-bottom: 5px;
+                margin: 5px 5px 5px 10px;
                 display: flex;
                 color: #000000;
+                justify-content: flex-start;
                 .mesDetail {
                   display: flex;
                   flex-direction: column;
@@ -824,6 +836,7 @@ export default defineComponent({
                     display: flex;
                     align-items: center;
                     justify-content: space-around;
+                    margin-left: 5px;
                     .name {
                       margin-right: 10px;
                       height: 20px;

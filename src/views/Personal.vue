@@ -64,55 +64,12 @@
           </el-row>
         </div>
         <div class="mainBox">
-          <div class="topInfo">
-            <div class="left">
-              <button class="recommend">系统推荐</button>
-              <button class="checkAll">查看全部</button>
+            <div class="top">
+                  top
             </div>
-            <div class="right">
-              <el-input
-                v-model="searchUser"
-                class="w-50 m-2"
-                size="large"
-                placeholder="请输入用户名"
-                clearable
-                ><template #prepend>
-                  <img
-                    src="../assets/icon-search.png"
-                    alt=""
-                    srcset=""
-                    style="width: 20px; height: 20px"
-                  />
-                </template>
-              </el-input>
+            <div class="bottom">
+                  bottom
             </div>
-          </div>
-          <div class="line"></div>
-          <div class="mainInfo">
-            <el-table
-              :data="tableData"
-              style="width: 100%"
-              height="250"
-              :header-cell-style="{background:'#dff6ed',color:'#52545A',borderColor:'#2fc38a'}"
-              border
-            >
-              <el-table-column fixed prop="user" label="用户姓名" width="120" />
-              <el-table-column prop="time" label="发布时间" width="160" />
-              <el-table-column prop="status" label="解决状态" width="120" />
-              <el-table-column prop="type" label="疑惑类型" width="120" />
-              <el-table-column prop="ways" label="解决途径" width="120" />
-              <el-table-column prop="adress" label="地点" width="120" />
-              <el-table-column prop="degree" label="紧急程度" width="120" />
-              <el-table-column prop="describe" label="具体描述" width="220" />
-              <el-table-column prop="operate" label="操作" width="260" >
-                <template v-slot="scope">
-                  <img src="../assets/icon-dangan.png" alt="">
-                <a @click="handleImageClick(scope.row)">匹配</a>
-                <span>不感兴趣</span>
-              </template>
-              </el-table-column>
-            </el-table>
-          </div>
         </div>
       </div>
     </div>
@@ -122,13 +79,16 @@
 import router from "@/router";
 import { defineComponent, ref } from "vue";
 export default defineComponent({
-  name: "ChildProblemView",
+  name: "Personal",
   components: {},
   setup() {
     const navigateToHome = () => {
       router.push({ path: "/" });
     };
     const searchUser = ref("");
+    const handleImageClick = (row: any) => {
+      console.log(row);
+    };
         const navigateToChildProblem = () => {
       router.push("/childProblem");
     };
@@ -141,17 +101,14 @@ export default defineComponent({
     const navigateToPersonal = () => {
       router.push("/personal");
     };
-    const handleImageClick = (row: any) => {
-      console.log(row);
-    };
     return {
       searchUser,
       navigateToHome,
+      handleImageClick,
       navigateToChildProblem,
       navigateToProblemManage,
       navigateToChatPlatform,
       navigateToPersonal,
-      handleImageClick,
     };
   },
 });
@@ -232,49 +189,6 @@ export default defineComponent({
     .mainBox {
       width: 100%;
       height: 100%;
-      .topInfo {
-        background-color: #fff;
-        height: 60px;
-        display: flex;
-        justify-content: space-between;
-        margin: 0 20px 5px 20px;
-        padding: 5px;
-        border-bottom: 1px solid #d3d3d3;
-        .left {
-          display: flex;
-          align-items: center;
-          .checkAll {
-            width: 100px;
-            height: 30px;
-            border-radius: 5px;
-            margin-right: 10px;
-            background-color: #a7a3a3;
-            border: none;
-            color: #fff;
-          }
-          .recommend {
-            width: 100px;
-            height: 30px;
-            border-radius: 5px;
-            margin-right: 10px;
-            background-color: #2fc38a;
-            border: none;
-            color: #fff;
-          }
-        }
-        .right {
-          display: flex;
-          align-items: center;
-        }
-      }
-      .line {
-        height: 2px;
-        background-color: #d3d3d3;
-        margin: 0 20px;
-      }
-      .mainInfo {
-        margin: 5px 20px 10px 20px;
-      }
     }
   }
 }
