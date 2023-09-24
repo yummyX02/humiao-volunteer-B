@@ -46,10 +46,18 @@
                   <el-menu-item index="1-1" @click="navigateToChildProblem"
                     >儿童问题池</el-menu-item
                   >
-                  <el-menu-item index="1-2" @click="navigateToProblemManage">问题列表管理</el-menu-item>
-                  <el-menu-item index="1-3" @click="navigateToChatPlatform">交流互助论坛</el-menu-item>
+                  <el-menu-item index="1-2" @click="navigateToProblemManage"
+                    >问题列表管理</el-menu-item
+                  >
+                  <el-menu-item index="1-3" @click="navigateToChatPlatform"
+                    >交流互助论坛</el-menu-item
+                  >
                 </el-sub-menu>
-                <el-sub-menu index="3" class="fatherMenu" @click="navigateToPersonal">
+                <el-sub-menu
+                  index="3"
+                  class="fatherMenu"
+                  @click="navigateToPersonal"
+                >
                   <template #title>
                     <img
                       src="../assets/icon-img.png"
@@ -93,7 +101,11 @@
               :data="tableData"
               style="width: 100%"
               height="250"
-              :header-cell-style="{background:'#dff6ed',color:'#52545A',borderColor:'#2fc38a'}"
+              :header-cell-style="{
+                background: '#dff6ed',
+                color: '#52545A',
+                borderColor: '#2fc38a',
+              }"
               border
             >
               <el-table-column fixed prop="user" label="用户姓名" width="120" />
@@ -104,10 +116,10 @@
               <el-table-column prop="adress" label="地点" width="120" />
               <el-table-column prop="degree" label="紧急程度" width="120" />
               <el-table-column prop="describe" label="具体描述" width="220" />
-              <el-table-column prop="operate" label="操作" width="260" >
+              <el-table-column prop="operate" label="操作" width="260">
                 <template v-slot="scope">
-                <a @click="handleImageClick(scope.row)">处理解惑</a>
-              </template>
+                  <a @click="handleImageClick(scope.row)">处理解惑</a>
+                </template>
               </el-table-column>
             </el-table>
           </div>
@@ -130,7 +142,7 @@ export default defineComponent({
     const handleImageClick = (row: any) => {
       console.log(row);
     };
-        const navigateToChildProblem = () => {
+    const navigateToChildProblem = () => {
       router.push("/childProblem");
     };
     const navigateToProblemManage = () => {
@@ -142,8 +154,11 @@ export default defineComponent({
     const navigateToPersonal = () => {
       router.push("/personal");
     };
+    const userName = "张三";
+
     return {
       searchUser,
+      userName,
       navigateToHome,
       handleImageClick,
       navigateToChildProblem,

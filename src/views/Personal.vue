@@ -301,9 +301,13 @@ export default defineComponent({
       label: `${idx + 1}`,
     }));
     const showStatus = ref(true);
+    const userName = "张三";
+
+
     return {
       searchUser,
       user,
+      userName,
       circleUrl,
       ruleForm,
       rules,
