@@ -47,10 +47,18 @@
                   <el-menu-item index="1-1" @click="navigateToChildProblem"
                     >儿童问题池</el-menu-item
                   >
-                  <el-menu-item index="1-2" @click="navigateToProblemManage">问题列表管理</el-menu-item>
-                  <el-menu-item index="1-3" @click="navigateToChatPlatform">交流互助论坛</el-menu-item>
+                  <el-menu-item index="1-2" @click="navigateToProblemManage"
+                    >问题列表管理</el-menu-item
+                  >
+                  <el-menu-item index="1-3" @click="navigateToChatPlatform"
+                    >交流互助论坛</el-menu-item
+                  >
                 </el-sub-menu>
-                <el-sub-menu index="3" class="fatherMenu" @click="navigateToPersonal">
+                <el-sub-menu
+                  index="3"
+                  class="fatherMenu"
+                  @click="navigateToPersonal"
+                >
                   <template #title>
                     <img
                       src="../assets/icon-img.png"
@@ -367,9 +375,21 @@
 </template>
 
 <script lang="ts">
+interface MyResponseData {
+  id: number;
+  permission: number;
+  userName: string;
+  isCertification: number;
+  isSetIdentity: number;
+  headPicUrl: string;
+  isBindParents: number;
+  token: string;
+}
 import { defineComponent, onMounted, ref } from "vue";
 import * as echarts from "echarts";
 import router from "@/router";
+import localforage from "localforage";
+import axiosInstance from "@/requests";
 
 export default defineComponent({
   name: "HomeView",
@@ -560,11 +580,11 @@ export default defineComponent({
           top: "5%",
           left: "center",
           formatter: function (name: string) {
-            var dataItem = childTotalNum.find(function (item) {
+            var dataItem = childTotalNum.value.find(function (item) {
               return item.name === name;
             });
-
             if (dataItem) {
+              
               var percent =
                 ((dataItem.value / dataItem.count) * 100).toFixed(2) + "%";
               return name + " (" + percent + ", " + dataItem.count + " 人)";
@@ -594,8 +614,8 @@ export default defineComponent({
               show: false,
             },
             data: [
-              { value: 25, name: "男" },
-              { value: 75, name: "女" },
+              { value: 80, name: "男" },
+              { value: 20, name: "女" },
             ],
           },
         ],
@@ -606,24 +626,40 @@ export default defineComponent({
       option4 && myChart4.setOption(option4);
       option5 && myChart5.setOption(option5);
     };
-    const userName = "张三";
+    const userName = ref("");
+    const token = ref("");
+    const fetchData = async () => {
+      try {
+        const value = await localforage.getItem<MyResponseData>("userInfo");
+        if (value) {
+          userName.value = value.userName; // 更新 userName
+          token.value = value.token;
+          console.log("载入成功", userName.value);
+        }
+      } catch (err) {
+        // 当出错时，此处代码运行
+        console.error(err);
+      }
+    };
+
     const handleOpen = (key: string, keyPath: string[]) => {
       console.log(key, keyPath);
     };
     const handleClose = (key: string, keyPath: string[]) => {
       console.log(key, keyPath);
     };
-    const disabuseResultList = {
+    const disabuseResultList = ref({
       notStart: 0,
       solving: 0,
       solved: 0,
       total: 0,
       dayAdd: 0,
-    };
-    var childTotalNum = [
-      { name: "男", value: 25, count: 100 },
-      { name: "女", value: 75, count: 100 },
-    ];
+    });
+    const childTotalNum = ref([
+      { name: "男", value: 12, count: 12 },
+      { name: "女", value: 12, count: 12 },
+    ]);
+
     const styleArea = ref("继续解决刘聪聪小朋友关于校园暴力的问题");
     const navigateToChildProblem = () => {
       router.push("/childProblem");
@@ -638,8 +674,42 @@ export default defineComponent({
       router.push("/personal");
     };
 
+    const loadData = async () => {
+      try {
+        const [responseA, responseB, responseC, responseD] = await Promise.all([
+          axiosInstance.get("/api/disabuse-data/b"),
+          axiosInstance.get("/api/disabuse-data/b"),
+          axiosInstance.get("/api/disabuse-show/b "),
+          axiosInstance.get("/api/childNumber/b "),
+        ]);
+
+        console.log(responseA);
+        console.log(responseB);
+        console.log(responseC);
+        console.log(responseD);
+        //解惑数据统计
+        disabuseResultList.value.notStart = responseA.data.unStart;
+        disabuseResultList.value.solving = responseA.data.solving;
+        disabuseResultList.value.solved = responseA.data.finished;
+        disabuseResultList.value.total = responseA.data.total;
+        disabuseResultList.value.dayAdd = responseA.data.todayAddNumber;
+        //个人解惑详情
+
+        //平台解惑增长详情
+        //平台儿童数量详情
+        childTotalNum.value[0].count = responseD.data.male;
+        childTotalNum.value[1].count = responseD.data.female;
+        console.log(childTotalNum.value[0].count);
+        console.log(childTotalNum.value[1].count);
+        echartInit();
+      } catch (error) {
+        console.error("请求错误:", error);
+      }
+    };
     onMounted(() => {
-      echartInit();
+      loadData();
+      // echartInit();
+      fetchData();
     });
 
     return {
@@ -886,7 +956,7 @@ export default defineComponent({
               width: 60px;
               height: 40px;
             }
-            
+
             .nav {
               display: flex;
               align-items: center;

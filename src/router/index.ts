@@ -10,7 +10,8 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
     name: 'home',
-    component: HomeView
+    component: HomeView,
+    meta: { requiresAuth: true }, // 需要身份验证
   },
   {
     path: '/login',
@@ -20,22 +21,26 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/childProblem',
     name: 'childProblem',
-    component: ChildProblem
+    component: ChildProblem,
+    meta: { requiresAuth: true }, // 需要身份验证
   },
   {
     path: '/problemManage',
     name: 'problemManage',
-    component: ProblemManage
+    component: ProblemManage,
+    meta: { requiresAuth: true }, // 需要身份验证
   },
   {
     path: '/chatPlatform',
     name: 'chatPlatform',
-    component: ChatPlatform
+    component: ChatPlatform,
+    meta: { requiresAuth: true }, // 需要身份验证
   },
   {
     path: '/personal',
     name: 'personal',
-    component: Personal
+    component: Personal,
+    meta: { requiresAuth: true }, // 需要身份验证
   }
 ]
 
