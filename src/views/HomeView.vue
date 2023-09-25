@@ -9,7 +9,7 @@
           </div>
           <div class="user">
             <div class="icon-user">
-              <img src="../assets/icon-user.png" alt="" srcset="" />
+              <img :src="url" alt="" srcset="" />
             </div>
             <h4>{{ userName }}</h4>
           </div>
@@ -292,7 +292,7 @@
                     />
                     <p style="color: black; font-weight: bold">待办事项</p>
                   </div>
-                  <div class="add">
+                  <div class="add" @click="showAddDialog">
                     <img
                       src="../assets/icon-add.png"
                       alt=""
@@ -301,12 +301,55 @@
                   </div>
                 </div>
                 <div class="myCalender">
-                  <el-calendar ref="calendar" style="color: black">
-                    <template #header="{ date }">
-                      <span>{{ date }}</span>
+                  <el-calendar style="color: black" v-model="myCalender">
+                    <template v-slot:dateCell="slotProps">
+                      <div
+                        @click="viewDayWork(slotProps.data)"
+                        v-popover:popover
+                      >
+                        <p
+                          :class="
+                            slotProps.data.isSelected ? 'is-selected' : ''
+                          "
+                        >
+                          {{ slotProps.data.day.split("-").slice(2).join() }}
+                          {{ slotProps.data.isSelected ? "✔️" : "" }}
+                        </p>
+                      </div>
                     </template>
                   </el-calendar>
                 </div>
+                <el-dialog
+                  title="添加事件"
+                  v-model="dialogVisible"
+                  width="30%"
+                  @close="clearForm"
+                >
+                  <el-form :model="eventForm" rules="eventFormRules">
+                    <el-form-item label="日期">
+                      <el-date-picker
+                        v-model="eventForm.date"
+                        type="date"
+                        placeholder="选择日期"
+                        style="width: 100%"
+                      ></el-date-picker>
+                    </el-form-item>
+
+                    <el-form-item label="主题">
+                      <el-input
+                        v-model="eventForm.theme"
+                        placeholder="输入待办事项内容"
+                        clearable
+                      ></el-input>
+                    </el-form-item>
+
+                    <el-form-item>
+                      <el-button type="primary" @click="addEvents"
+                        >保存</el-button
+                      >
+                    </el-form-item>
+                  </el-form>
+                </el-dialog>
                 <div class="line"></div>
                 <div class="styleArea">
                   <p>{{ styleArea }}</p>
@@ -385,20 +428,71 @@ interface MyResponseData {
   isBindParents: number;
   token: string;
 }
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onBeforeMount, onMounted, reactive, ref } from "vue";
 import * as echarts from "echarts";
 import router from "@/router";
 import localforage from "localforage";
 import axiosInstance from "@/requests";
+import { ElMessage } from "element-plus";
 
 export default defineComponent({
   name: "HomeView",
   components: {},
   setup() {
     //配置Echarts
+    const noStartData = ref([
+      { value: 1048, name: "身体" },
+      { value: 735, name: "学习" },
+      { value: 580, name: "兴趣" },
+      { value: 484, name: "心理" },
+    ]);
+    const solvedData = ref([
+      { value: 1048, name: "身体" },
+      { value: 735, name: "学习" },
+      { value: 580, name: "兴趣" },
+      { value: 484, name: "心理" },
+    ]);
+    const solvingData = ref([
+      { value: 1048, name: "身体" },
+      { value: 735, name: "学习" },
+      { value: 580, name: "兴趣" },
+      { value: 484, name: "心理" },
+    ]);
+    const option4Data = ref([
+      {
+        name: "Email",
+        type: "line",
+        stack: "Total",
+        data: [120, 132, 101, 134, 90, 230, 210],
+      },
+      {
+        name: "Union Ads",
+        type: "line",
+        stack: "Total",
+        data: [220, 182, 191, 234, 290, 330, 310],
+      },
+      {
+        name: "Video Ads",
+        type: "line",
+        stack: "Total",
+        data: [150, 232, 201, 154, 190, 330, 410],
+      },
+      {
+        name: "Direct",
+        type: "line",
+        stack: "Total",
+        data: [320, 332, 301, 334, 390, 330, 320],
+      },
+      {
+        name: "Search Engine",
+        type: "line",
+        stack: "Total",
+        data: [820, 932, 901, 934, 1290, 1330, 1320],
+      },
+    ]);
     const echartInit = () => {
       var myChart1 = echarts.init(document.getElementById("noStart"));
-      var option1 = {
+      const option1 = ref({
         tooltip: {
           trigger: "item",
         },
@@ -426,17 +520,12 @@ export default defineComponent({
             labelLine: {
               show: false,
             },
-            data: [
-              { value: 1048, name: "Search Engine" },
-              { value: 735, name: "Direct" },
-              { value: 580, name: "Email" },
-              { value: 484, name: "Union Ads" },
-            ],
+            data: noStartData,
           },
         ],
-      };
+      });
       var myChart2 = echarts.init(document.getElementById("solving"));
-      var option2 = {
+      const option2 = ref({
         tooltip: {
           trigger: "item",
         },
@@ -464,17 +553,12 @@ export default defineComponent({
             labelLine: {
               show: false,
             },
-            data: [
-              { value: 1048, name: "Search Engine" },
-              { value: 735, name: "Direct" },
-              { value: 580, name: "Email" },
-              { value: 484, name: "Union Ads" },
-            ],
+            data: solvingData,
           },
         ],
-      };
+      });
       var myChart3 = echarts.init(document.getElementById("solved"));
-      var option3 = {
+      const option3 = ref({
         tooltip: {
           trigger: "item",
         },
@@ -502,26 +586,21 @@ export default defineComponent({
             labelLine: {
               show: false,
             },
-            data: [
-              { value: 1048, name: "Search Engine" },
-              { value: 735, name: "Direct" },
-              { value: 580, name: "Email" },
-              { value: 484, name: "Union Ads" },
-            ],
+            data: solvedData,
           },
         ],
-      };
+      });
       var myChart4 = echarts.init(document.getElementById("platformAdd"));
-      var option4 = {
+      const option4 = ref({
         tooltip: {
           trigger: "axis",
         },
         legend: {
-          data: ["Email", "Union Ads", "Video Ads", "Direct", "Search Engine"],
+          data: ["学习", "心理", "兴趣", "健康", "感情"],
         },
         grid: {
           left: "3%",
-          right: "4%",
+          right: "5%",
           bottom: "3%",
           containLabel: true,
         },
@@ -533,44 +612,13 @@ export default defineComponent({
         xAxis: {
           type: "category",
           boundaryGap: false,
-          data: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+          data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"],
         },
         yAxis: {
           type: "value",
         },
-        series: [
-          {
-            name: "Email",
-            type: "line",
-            stack: "Total",
-            data: [120, 132, 101, 134, 90, 230, 210],
-          },
-          {
-            name: "Union Ads",
-            type: "line",
-            stack: "Total",
-            data: [220, 182, 191, 234, 290, 330, 310],
-          },
-          {
-            name: "Video Ads",
-            type: "line",
-            stack: "Total",
-            data: [150, 232, 201, 154, 190, 330, 410],
-          },
-          {
-            name: "Direct",
-            type: "line",
-            stack: "Total",
-            data: [320, 332, 301, 334, 390, 330, 320],
-          },
-          {
-            name: "Search Engine",
-            type: "line",
-            stack: "Total",
-            data: [820, 932, 901, 934, 1290, 1330, 1320],
-          },
-        ],
-      };
+        series: option4Data,
+      });
       var myChart5 = echarts.init(document.getElementById("totalNum"));
       var option5 = {
         tooltip: {
@@ -584,10 +632,10 @@ export default defineComponent({
               return item.name === name;
             });
             if (dataItem) {
-              
               var percent =
                 ((dataItem.value / dataItem.count) * 100).toFixed(2) + "%";
-              return name + " (" + percent + ", " + dataItem.count + " 人)";
+              // return name + " (" + percent + ", " + dataItem.count + " 人)";
+              return name + " (" + dataItem.count + " 人)";
             }
 
             return name;
@@ -595,7 +643,7 @@ export default defineComponent({
         },
         series: [
           {
-            name: "Access From",
+            name: "儿童数量",
             type: "pie",
             radius: ["40%", "70%"],
             avoidLabelOverlap: false,
@@ -614,27 +662,52 @@ export default defineComponent({
               show: false,
             },
             data: [
-              { value: 80, name: "男" },
-              { value: 20, name: "女" },
+              { value: 8, name: "男" },
+              { value: 1, name: "女" },
             ],
           },
         ],
       };
-      option1 && myChart1.setOption(option1);
-      option2 && myChart2.setOption(option2);
-      option3 && myChart3.setOption(option3);
-      option4 && myChart4.setOption(option4);
+      option1 && myChart1.setOption(option1.value);
+      option2 && myChart2.setOption(option2.value);
+      option3 && myChart3.setOption(option3.value);
+      option4 && myChart4.setOption(option4.value);
       option5 && myChart5.setOption(option5);
     };
     const userName = ref("");
+    let url = localStorage.getItem("headUrl"); // 头像
     const token = ref("");
+    const dialogVisible = ref(false);
+    const eventForm = reactive({
+      date: "",
+      theme: "",
+    });
+    const eventFormRules = {
+      date: [{ required: true, message: "请选择日期", trigger: "blur" }],
+      theme: [{ required: true, message: "请输入主题", trigger: "blur" }],
+    };
+    const myCalender = ref("");
+
+    const viewDayWork = async (data: { day: any }) => {
+      // 处理点击事件
+      console.log("Clicked on date:", data.day);
+      //将data.day转换时间戳
+      const targetDate = new Date(data.day).getTime().toString();
+      console.log('targetDate', targetDate);
+      
+      const res = await axiosInstance.post("/api/getTodoList/b", targetDate);
+      if(res){
+        console.log(res.data);
+        styleArea.value = res.data.theme;
+      }
+    };
+
     const fetchData = async () => {
       try {
         const value = await localforage.getItem<MyResponseData>("userInfo");
         if (value) {
           userName.value = value.userName; // 更新 userName
           token.value = value.token;
-          console.log("载入成功", userName.value);
         }
       } catch (err) {
         // 当出错时，此处代码运行
@@ -656,8 +729,8 @@ export default defineComponent({
       dayAdd: 0,
     });
     const childTotalNum = ref([
-      { name: "男", value: 12, count: 12 },
-      { name: "女", value: 12, count: 12 },
+      { name: "男", value: 8, count: 8 },
+      { name: "女", value: 1, count: 1 },
     ]);
 
     const styleArea = ref("继续解决刘聪聪小朋友关于校园暴力的问题");
@@ -695,20 +768,83 @@ export default defineComponent({
         disabuseResultList.value.dayAdd = responseA.data.todayAddNumber;
         //个人解惑详情
 
+        noStartData.value[0].value =
+          responseB.data.disabuseDataTypeResults[0].psychologyNumber;
+        noStartData.value[1].value =
+          responseB.data.disabuseDataTypeResults[0].studyNumber;
+        noStartData.value[2].value =
+          responseB.data.disabuseDataTypeResults[0].interestNumber;
+        noStartData.value[3].value =
+          responseB.data.disabuseDataTypeResults[0].healthNumber;
+        solvingData.value[0].value =
+          responseB.data.disabuseDataTypeResults[1].psychologyNumber;
+        solvingData.value[1].value =
+          responseB.data.disabuseDataTypeResults[1].studyNumber;
+        solvingData.value[2].value =
+          responseB.data.disabuseDataTypeResults[1].interestNumber;
+        solvingData.value[3].value =
+          responseB.data.disabuseDataTypeResults[1].healthNumber;
+        solvedData.value[0].value =
+          responseB.data.disabuseDataTypeResults[2].psychologyNumber;
+        solvedData.value[1].value =
+          responseB.data.disabuseDataTypeResults[2].studyNumber;
+        solvedData.value[2].value =
+          responseB.data.disabuseDataTypeResults[2].interestNumber;
+        solvedData.value[3].value =
+          responseB.data.disabuseDataTypeResults[2].healthNumber;
+
         //平台解惑增长详情
+        for (
+          let index = 0;
+          index < responseC.data.showDisabuseResultList.length;
+          index++
+        ) {
+          option4Data.value[index].name =
+            responseC.data.showDisabuseResultList[index].type;
+          option4Data.value[index].data =
+            responseC.data.showDisabuseResultList[index].list;
+        }
+
         //平台儿童数量详情
         childTotalNum.value[0].count = responseD.data.male;
         childTotalNum.value[1].count = responseD.data.female;
-        console.log(childTotalNum.value[0].count);
-        console.log(childTotalNum.value[1].count);
         echartInit();
       } catch (error) {
         console.error("请求错误:", error);
       }
     };
+
+    const addEvents = async () => {
+      try {
+        //将获取的日期转换字符串形式的时间戳
+        const timestamp = new Date(eventForm.date).getTime().toString();
+        eventForm.date = timestamp;
+        const res = await axiosInstance.post("/api/addTodoList/b", eventForm);
+        if (res) {
+          ElMessage.success("添加成功");
+          dialogVisible.value = false;
+          clearForm();
+        }
+      } catch (err) {
+        // 当出错时，此处代码运行
+        console.error(err);
+      }
+    };
+    const showAddDialog = () => {
+      dialogVisible.value = true;
+    };
+    const clearForm = () => {
+      eventForm.date = "";
+      eventForm.theme = "";
+    };
+
+    onBeforeMount(() => {
+      console.log("HomeView onBeforeMount");
+      url = localStorage.getItem("headUrl"); // 头像
+      console.log(url);
+    });
     onMounted(() => {
       loadData();
-      // echartInit();
       fetchData();
     });
 
@@ -717,8 +853,17 @@ export default defineComponent({
       disabuseResultList,
       childTotalNum,
       styleArea,
+      url,
+      dialogVisible,
+      eventForm,
+      eventFormRules,
+      myCalender,
       echartInit,
+      showAddDialog,
+      addEvents,
+      viewDayWork,
       handleOpen,
+      clearForm,
       handleClose,
       navigateToChildProblem,
       navigateToProblemManage,

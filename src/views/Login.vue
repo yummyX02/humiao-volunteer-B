@@ -54,6 +54,7 @@ export default defineComponent({
         if(res.data.token !== undefined){
           console.log('登录成功', res.data.token);
           localStorage.setItem("isLogin", res.data.token);
+          localStorage.setItem("headUrl", res.data.headPicUrl);
           await localforage.setItem("userInfo", res.data);
           router.push("/");
         }
