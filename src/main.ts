@@ -41,7 +41,6 @@ router.beforeEach((to, from, next) => {
     next();
   }
 })
-
 createApp(App).use(ElementPlus).use(store).use(router).mount('#app')
 function checkUserAuthentication() {
   throw new Error('Function not implemented.')

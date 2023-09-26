@@ -691,12 +691,11 @@ export default defineComponent({
     const viewDayWork = async (data: { day: any }) => {
       // 处理点击事件
       console.log("Clicked on date:", data.day);
-      //将data.day转换时间戳
-      const targetDate = new Date(data.day).getTime().toString();
-      console.log('targetDate', targetDate);
-      
+      const targetDate = {
+        date: data.day,
+      };
       const res = await axiosInstance.post("/api/getTodoList/b", targetDate);
-      if(res){
+      if (res) {
         console.log(res.data);
         styleArea.value = res.data.theme;
       }
@@ -817,8 +816,17 @@ export default defineComponent({
     const addEvents = async () => {
       try {
         //将获取的日期转换字符串形式的时间戳
-        const timestamp = new Date(eventForm.date).getTime().toString();
-        eventForm.date = timestamp;
+        console.log(eventForm.date);
+        var timestamp = Date.parse(eventForm.date);
+
+        // 将时间戳转换为秒（除以 1000）
+        var timestampInSeconds = timestamp / 1000;
+
+        console.log(timestampInSeconds); // 输出时间戳（以秒为单位）
+        // const timestamp = new Date(eventForm.date).getTime().toString();
+        eventForm.date = timestampInSeconds.toString();
+        console.log(eventForm.date);
+        
         const res = await axiosInstance.post("/api/addTodoList/b", eventForm);
         if (res) {
           ElMessage.success("添加成功");
