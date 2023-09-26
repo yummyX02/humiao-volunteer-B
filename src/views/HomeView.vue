@@ -368,45 +368,32 @@
                 </div>
                 <div class="line"></div>
                 <div class="messageBox">
-                  <div class="mesInfo">
-                    <img
-                      src="../assets/icon-child.png"
-                      alt=""
-                      style="width: 30px; height: 30px"
-                    />
-                    <div class="mesDetail">
-                      <div class="top">
-                        <div class="name">王护</div>
-                        <div class="time">14:18</div>
-                      </div>
-                      <div class="bottom">
-                        <p>志愿者哥哥，这个字怎么念？</p>
-                        <div class="num">
-                          <span>1</span>
+                  <el-scrollbar height="170px">
+                    // 写一个动态渲染的消息列表
+                    <div
+                      v-for="(item, index) in messageList"
+                      :key="index"
+                      class="mesInfo"
+                    >
+                      <img
+                        :src="item.headPicUrl"
+                        alt=""
+                        style="width: 30px; height: 30px"
+                      />
+                      <div class="mesDetail">
+                        <div class="top">
+                          <div class="name">{{ item.name }}</div>
+                          <div class="time">{{ item.time }}</div>
+                        </div>
+                        <div class="bottom">
+                          <p>{{ item.latestMessage }}</p>
+                          <div class="num" v-if="item.type">
+                            <span>{{ item.num }}</span>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  <div class="line"></div>
-                  <div class="mesInfo">
-                    <img
-                      src="../assets/icon-child.png"
-                      alt=""
-                      style="width: 30px; height: 30px"
-                    />
-                    <div class="mesDetail">
-                      <div class="top">
-                        <div class="name">王苗</div>
-                        <div class="time">12:39</div>
-                      </div>
-                      <div class="bottom">
-                        <p>志愿者哥哥，这道题怎么写？</p>
-                        <div class="num">
-                          <span>1</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  </el-scrollbar>
                 </div>
               </div>
             </div>
@@ -748,17 +735,16 @@ export default defineComponent({
 
     const loadData = async () => {
       try {
-        const [responseA, responseB, responseC, responseD] = await Promise.all([
-          axiosInstance.get("/api/disabuse-data/b"),
-          axiosInstance.get("/api/disabuse-data/b"),
-          axiosInstance.get("/api/disabuse-show/b "),
-          axiosInstance.get("/api/childNumber/b "),
-        ]);
+        const [responseA, responseB, responseC, responseD, responseE] =
+          await Promise.all([
+            axiosInstance.get("/api/disabuse-data/b"),
+            axiosInstance.get("/api/disabuse-data/b"),
+            axiosInstance.get("/api/disabuse-show/b "),
+            axiosInstance.get("/api/childNumber/b "),
+            axiosInstance.get("/api/message-num-list "),
+          ]);
+        console.log(responseE);
 
-        console.log(responseA);
-        console.log(responseB);
-        console.log(responseC);
-        console.log(responseD);
         //解惑数据统计
         disabuseResultList.value.notStart = responseA.data.unStart;
         disabuseResultList.value.solving = responseA.data.solving;
@@ -807,6 +793,25 @@ export default defineComponent({
         //平台儿童数量详情
         childTotalNum.value[0].count = responseD.data.male;
         childTotalNum.value[1].count = responseD.data.female;
+        // 获取消息列表
+        // 时间戳转换为时：分
+        for (
+          let index = 0;
+          index < responseE.data.messageNumList.length;
+          index++
+        ) {
+          const element = responseE.data.messageNumList[index];
+          var date = new Date(element.time * 1000);
+          var h = date.getHours();
+          var m = date.getMinutes();
+          responseE.data.messageNumList[index].time = h + ":" + m;
+          if (element.num == 0) {
+            responseE.data.messageNumList[index].type = false;
+          } else {
+            responseE.data.messageNumList[index].type = true;
+          }
+        }
+        messageList.value = responseE.data.messageNumList;
         echartInit();
       } catch (error) {
         console.error("请求错误:", error);
@@ -826,7 +831,7 @@ export default defineComponent({
         // const timestamp = new Date(eventForm.date).getTime().toString();
         eventForm.date = timestampInSeconds.toString();
         console.log(eventForm.date);
-        
+
         const res = await axiosInstance.post("/api/addTodoList/b", eventForm);
         if (res) {
           ElMessage.success("添加成功");
@@ -845,6 +850,24 @@ export default defineComponent({
       eventForm.date = "";
       eventForm.theme = "";
     };
+    const messageList = ref([
+      {
+        name: "王护",
+        time: "14:18",
+        latestMessage: "志愿者哥哥，这个字怎么念？",
+        num: 1,
+        headPicUrl: "",
+        type: ref(true),
+      },
+      {
+        name: "王苗",
+        time: "12:39",
+        latestMessage: "志愿者哥哥，这道题怎么写？",
+        num: 1,
+        headPicUrl: "",
+        type: ref(true),
+      },
+    ]);
 
     onBeforeMount(() => {
       console.log("HomeView onBeforeMount");
@@ -866,6 +889,7 @@ export default defineComponent({
       eventForm,
       eventFormRules,
       myCalender,
+      messageList,
       echartInit,
       showAddDialog,
       addEvents,
@@ -1058,16 +1082,17 @@ export default defineComponent({
                   .top {
                     display: flex;
                     align-items: center;
-                    justify-content: space-around;
                     margin-left: 5px;
+                    width: 300px;
+                    justify-content: space-between;
                     .name {
-                      margin-right: 10px;
                       height: 20px;
+                      width: 150px;
+                      text-align: left;
                     }
                     .time {
-                      margin-left: 10px;
                       height: 20px;
-                      margin-left: 240px;
+                      text-align: right;
                     }
                   }
                   .bottom {
