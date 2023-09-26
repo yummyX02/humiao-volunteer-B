@@ -9,7 +9,7 @@
           </div>
           <div class="user">
             <div class="icon-user">
-              <img src="../assets/icon-user.png" alt="" srcset="" />
+              <img :src="user.url" alt="" srcset="" />
             </div>
             <h4>{{ userName }}</h4>
           </div>
@@ -128,38 +128,40 @@
                   <el-input v-model="ruleForm.age" />
                 </el-form-item>
                 <el-form-item label="性别" prop="sex">
-                  <el-radio-group v-model="ruleForm.resource">
+                  <el-radio-group v-model="ruleForm.sex">
                     <el-radio label="男" />
                     <el-radio label="女" />
                   </el-radio-group>
                 </el-form-item>
                 <el-form-item label="职业" prop="job">
-                  <el-input v-model="ruleForm.age" />
+                  <el-input v-model="ruleForm.job" />
                 </el-form-item>
                 <el-form-item label="所在区域" prop="region">
                   <el-select
                     v-model="ruleForm.region"
-                    placeholder="Activity zone"
+                    placeholder="请选择所在区域"
                   >
                     <el-option label="Zone one" value="shanghai" />
                     <el-option label="Zone two" value="beijing" />
                   </el-select>
                 </el-form-item>
                 <el-form-item label="擅长解决的问题" prop="type">
-                  <el-select-v2
-                    v-model="ruleForm.count"
-                    placeholder="Activity count"
-                    :options="options"
-                  />
+                  <el-select
+                    v-model="ruleForm.type"
+                    placeholder="请选择擅长解决的问题"
+                  >
+                    <el-option label="Zone one" value="shanghai" />
+                    <el-option label="Zone two" value="beijing" />
+                  </el-select>
                 </el-form-item>
-                <el-form-item label="Activity form" prop="desc">
+                <el-form-item label="个人简介" prop="desc">
                   <el-input v-model="ruleForm.desc" type="textarea" />
                 </el-form-item>
                 <el-form-item>
                   <el-button type="primary" @click="submitForm(ruleFormRef)">
-                    Create
+                    保存
                   </el-button>
-                  <el-button @click="resetForm(ruleFormRef)">Reset</el-button>
+                  <el-button @click="resetForm(ruleFormRef)">重置</el-button>
                 </el-form-item>
               </el-form>
             </div>
@@ -207,28 +209,30 @@ export default defineComponent({
     const navigateToPersonal = () => {
       router.push("/personal");
     };
-    const user = {
+    const user = ref({
       name: "张三",
       id: "123456",
       time: "2021-05-01",
       identify: "已认证",
       phone: "12345678910",
-    };
+      url: "",
+    });
     const ModifyName = () => {
       console.log("修改用户名");
     };
     const Modify = () => {
       console.log("修改手机号码");
     };
-    const circleUrl =
-      "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png";
+    const circleUrl = ref(
+      "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"
+    );
 
     interface RuleForm {
       age: string;
       region: string;
       job: string;
       delivery: boolean;
-      type: string[];
+      type: string;
       sex: string;
       desc: string;
     }
@@ -236,11 +240,11 @@ export default defineComponent({
     const formSize = ref("default");
     const ruleFormRef = ref<FormInstance>();
     const ruleForm = reactive<RuleForm>({
-      age: "Hello",
+      age: "",
       region: "",
       job: "",
       delivery: false,
-      type: [],
+      type: "",
       sex: "",
       desc: "",
     });
@@ -269,10 +273,9 @@ export default defineComponent({
       ],
       type: [
         {
-          type: "array",
           required: false,
-          message: "Please select at least one activity type",
-          trigger: "change",
+          message: "请选择擅长解决的问题",
+          trigger: "blur",
         },
       ],
       sex: [
@@ -285,7 +288,7 @@ export default defineComponent({
       desc: [
         {
           required: true,
-          message: "Please input activity form",
+          message: "请输入个人简介",
           trigger: "blur",
         },
       ],
@@ -307,17 +310,20 @@ export default defineComponent({
       formEl.resetFields();
     };
 
-    const options = Array.from({ length: 10000 }).map((_, idx) => ({
-      value: `${idx + 1}`,
-      label: `${idx + 1}`,
-    }));
+
     const showStatus = ref(true);
     const userName = ref("");
     const fetchData = async () => {
       try {
         const value = await localforage.getItem<MyResponseData>("userInfo");
         if (value) {
+          console.log(value);
+
           userName.value = value.userName; // 更新 userName
+          user.value.name = value.userName;
+          user.value.id = value.id.toString();
+          user.value.url = value.headPicUrl;
+          circleUrl.value = value.headPicUrl;
         }
       } catch (err) {
         // 当出错时，此处代码运行
@@ -336,7 +342,6 @@ export default defineComponent({
       rules,
       formSize,
       ruleFormRef,
-      options,
       showStatus,
       submitForm,
       resetForm,
