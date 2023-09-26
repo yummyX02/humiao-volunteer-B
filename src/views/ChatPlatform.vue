@@ -130,11 +130,22 @@
 </template>
 <script lang="ts">
 import router from "@/router";
-import { defineComponent, ref } from "vue";
+import localforage from "localforage";
+import { defineComponent, onMounted, ref } from "vue";
 export default defineComponent({
   name: "ChatPlatform",
   components: {},
   setup() {
+    interface MyResponseData {
+      id: number;
+      permission: number;
+      userName: string;
+      isCertification: number;
+      isSetIdentity: number;
+      headPicUrl: string;
+      isBindParents: number;
+      token: string;
+    }
     const navigateToHome = () => {
       router.push({ path: "/" });
     };
@@ -151,7 +162,21 @@ export default defineComponent({
     const navigateToPersonal = () => {
       router.push("/personal");
     };
-    const userName = "张三";
+    const userName = ref("");
+    const fetchData = async () => {
+      try {
+        const value = await localforage.getItem<MyResponseData>("userInfo");
+        if (value) {
+          userName.value = value.userName; // 更新 userName
+        }
+      } catch (err) {
+        // 当出错时，此处代码运行
+        console.error(err);
+      }
+    };
+    onMounted(() => {
+      fetchData();
+    });
     return {
       searchUser,
       userName,

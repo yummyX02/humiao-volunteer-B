@@ -172,11 +172,22 @@
 <script lang="ts">
 import router from "@/router";
 import { FormInstance, FormRules } from "element-plus";
-import { defineComponent, ref, reactive } from "vue";
+import localforage from "localforage";
+import { defineComponent, ref, reactive, onMounted } from "vue";
 export default defineComponent({
   name: "Personal",
   components: {},
   setup() {
+    interface MyResponseData {
+      id: number;
+      permission: number;
+      userName: string;
+      isCertification: number;
+      isSetIdentity: number;
+      headPicUrl: string;
+      isBindParents: number;
+      token: string;
+    }
     const navigateToHome = () => {
       router.push({ path: "/" });
     };
@@ -301,9 +312,21 @@ export default defineComponent({
       label: `${idx + 1}`,
     }));
     const showStatus = ref(true);
-    const userName = "张三";
-
-
+    const userName = ref("");
+    const fetchData = async () => {
+      try {
+        const value = await localforage.getItem<MyResponseData>("userInfo");
+        if (value) {
+          userName.value = value.userName; // 更新 userName
+        }
+      } catch (err) {
+        // 当出错时，此处代码运行
+        console.error(err);
+      }
+    };
+    onMounted(() => {
+      fetchData();
+    });
     return {
       searchUser,
       user,

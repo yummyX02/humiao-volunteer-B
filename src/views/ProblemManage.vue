@@ -100,7 +100,7 @@
             <el-table
               :data="tableData"
               style="width: 100%"
-              height="250"
+              height="75vh"
               :header-cell-style="{
                 background: '#dff6ed',
                 color: '#52545A',
@@ -108,19 +108,52 @@
               }"
               border
             >
-              <el-table-column fixed prop="user" label="用户姓名" width="120" />
-              <el-table-column prop="time" label="发布时间" width="160" />
-              <el-table-column prop="status" label="解决状态" width="120" />
-              <el-table-column prop="type" label="疑惑类型" width="120" />
-              <el-table-column prop="ways" label="解决途径" width="120" />
-              <el-table-column prop="adress" label="地点" width="120" />
-              <el-table-column prop="degree" label="紧急程度" width="120" />
-              <el-table-column prop="describe" label="具体描述" width="220" />
-              <el-table-column prop="operate" label="操作" width="260">
-                <template v-slot="scope">
-                  <a @click="handleImageClick(scope.row)">处理解惑</a>
-                </template>
-              </el-table-column>
+              <el-table-column fixed prop="user" label="用户姓名" width="170" />
+              <el-table-column prop="time" label="发布时间" width="210" />
+              <el-table-column
+                prop="status"
+                label="解决状态"
+                width="120"
+                :filters="[
+                  { text: '未匹配', value: '未匹配' },
+                  { text: '已匹配', value: '已匹配' },
+                  { text: '未开始', value: '未开始' },
+                  { text: '解决中', value: '解决中' },
+                  { text: '已完成', value: '已完成' },
+                ]"
+                :filter-method="filterHandlerStatus"
+                :filter-multiple="false"
+              />
+              <el-table-column
+                prop="type"
+                label="疑惑类型"
+                width="120"
+                :filters="[
+                  { text: '心理', value: '心理' },
+                  { text: '学习', value: '学习' },
+                  { text: '健康', value: '健康' },
+                  { text: '兴趣', value: '兴趣' },
+                  { text: '生活', value: '生活' },
+                ]"
+                :filter-method="filterHandlerType"
+                :filter-multiple="false"
+              />
+              <el-table-column
+                prop="ways"
+                label="解决途径"
+                width="120"
+                :filters="[
+                  { text: '线下', value: '线下' },
+                  { text: '视频', value: '视频' },
+                  { text: '语音', value: '语音' },
+                  { text: '文字', value: '文字' },
+                ]"
+                :filter-method="filterHandlerWays"
+                :filter-multiple="false"
+              />
+              <el-table-column prop="adress" label="地点" width="170" />
+              <el-table-column prop="degree" label="紧急程度" width="170" />
+              <el-table-column prop="describe" label="具体描述" width="260" />
             </el-table>
           </div>
         </div>
@@ -129,19 +162,40 @@
   </el-scrollbar>
 </template>
 <script lang="ts">
+import axiosInstance from "@/requests";
 import router from "@/router";
-import { defineComponent, ref } from "vue";
+import { TableColumnCtx } from "element-plus";
+import localforage from "localforage";
+import { defineComponent, onMounted, ref } from "vue";
 export default defineComponent({
   name: "ProblemManage",
   components: {},
   setup() {
+    interface User {
+      // 定义 User 类型的属性
+      user: string;
+      time: string;
+      status: string;
+      type: string;
+      ways: string;
+      adress: string;
+      degree: string;
+      describe: string;
+    }
+    interface MyResponseData {
+      id: number;
+      permission: number;
+      userName: string;
+      isCertification: number;
+      isSetIdentity: number;
+      headPicUrl: string;
+      isBindParents: number;
+      token: string;
+    }
     const navigateToHome = () => {
       router.push({ path: "/" });
     };
     const searchUser = ref("");
-    const handleImageClick = (row: any) => {
-      console.log(row);
-    };
     const navigateToChildProblem = () => {
       router.push("/childProblem");
     };
@@ -154,17 +208,104 @@ export default defineComponent({
     const navigateToPersonal = () => {
       router.push("/personal");
     };
-    const userName = "张三";
+    const handleImageClick = (row: any) => {
+      console.log(row);
+    };
+    const userName = ref("");
+    const tableData = [
+      {
+        user: "张三",
+        time: "2021-05-01",
+        status: "未匹配",
+        type: "学习",
+        ways: "线上",
+        adress: "北京",
+        degree: "一般",
+        describe: "学习不好",
+      },
+      {
+        user: "张三",
+        time: "2021-05-01",
+        status: "已解决",
+        type: "学习",
+        ways: "线上",
+        adress: "北京",
+        degree: "一般",
+        describe: "学习不好",
+      },
+      {
+        user: "张三",
+        time: "2021-05-01",
+        status: "已解决",
+        type: "学习",
+        ways: "线上",
+        adress: "北京",
+        degree: "一般",
+        describe: "学习不好",
+      },
+    ];
 
+    const filterHandlerStatus = (
+      value: string,
+      row: User,
+      column: TableColumnCtx<User>
+    ) => {
+      const property = column["property"] as keyof User; // 添加类型断言
+      return row[property] === value;
+    };
+    const filterHandlerType = (
+      value: string,
+      row: User,
+      column: TableColumnCtx<User>
+    ) => {
+      const property = column["property"] as keyof User; // 添加类型断言
+      return row[property] === value;
+    };
+    const filterHandlerWays = (
+      value: string,
+      row: User,
+      column: TableColumnCtx<User>
+    ) => {
+      const property = column["property"] as keyof User; // 添加类型断言
+      return row[property] === value;
+    };
+    const loadData = async () => {
+      try {
+        const res = await axiosInstance.get("/api/disabuse-list");
+        console.log(res);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+        const fetchData = async () => {
+      try {
+        const value = await localforage.getItem<MyResponseData>("userInfo");
+        if (value) {
+          userName.value = value.userName; // 更新 userName
+        }
+      } catch (err) {
+        // 当出错时，此处代码运行
+        console.error(err);
+      }
+    };
+    onMounted(() => {
+      loadData();
+      fetchData();
+    });
     return {
       searchUser,
       userName,
+      tableData,
+      filterHandlerStatus,
+      filterHandlerType,
+      filterHandlerWays,
       navigateToHome,
-      handleImageClick,
+      loadData,
       navigateToChildProblem,
       navigateToProblemManage,
       navigateToChatPlatform,
       navigateToPersonal,
+      handleImageClick,
     };
   },
 });
