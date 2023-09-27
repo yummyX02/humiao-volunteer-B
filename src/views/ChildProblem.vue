@@ -9,7 +9,7 @@
           </div>
           <div class="user">
             <div class="icon-user">
-              <img src="../assets/icon-user.png" alt="" srcset="" />
+              <img :src="url" alt="" srcset="" />
             </div>
             <h4>{{ userName }}</h4>
           </div>
@@ -48,9 +48,6 @@
                   >
                   <el-menu-item index="1-2" @click="navigateToProblemManage"
                     >问题列表管理</el-menu-item
-                  >
-                  <el-menu-item index="1-3" @click="navigateToChatPlatform"
-                    >交流互助论坛</el-menu-item
                   >
                 </el-sub-menu>
                 <el-sub-menu
@@ -108,7 +105,7 @@
               }"
               border
             >
-              <el-table-column fixed prop="user" label="用户姓名" width="120" />
+              <el-table-column fixed prop="name" label="用户姓名" width="120" />
               <el-table-column prop="time" label="发布时间" width="160" />
               <el-table-column
                 prop="status"
@@ -127,7 +124,7 @@
               <el-table-column
                 prop="type"
                 label="疑惑类型"
-                width="120"
+                width="180"
                 :filters="[
                   { text: '心理', value: '心理' },
                   { text: '学习', value: '学习' },
@@ -139,7 +136,7 @@
                 :filter-multiple="false"
               />
               <el-table-column
-                prop="ways"
+                prop="solveType"
                 label="解决途径"
                 width="120"
                 :filters="[
@@ -151,9 +148,8 @@
                 :filter-method="filterHandlerWays"
                 :filter-multiple="false"
               />
-              <el-table-column prop="adress" label="地点" width="120" />
-              <el-table-column prop="degree" label="紧急程度" width="120" />
-              <el-table-column prop="describe" label="具体描述" width="220" />
+              <el-table-column prop="degree" label="紧急程度" width="180" />
+              <el-table-column prop="question" label="具体描述" width="220" />
               <el-table-column prop="operate" label="操作" width="260">
                 <template v-slot="scope">
                   <div style="display: flex; align-items: center">
@@ -161,9 +157,10 @@
                       src="../assets/icon-dangan.png"
                       alt=""
                       style="width: 20px; height: 20px; margin-right: 5px"
+                      @click="handleImageClick(scope.row, scope.$index)"
                     />
                     <a
-                      @click="handleImageClick(scope.row)"
+                      @click="handlePipeiClick(scope.row, scope.$index)"
                       style="margin-right: 5px; color: red"
                       >匹配</a
                     >
@@ -172,6 +169,27 @@
                 </template>
               </el-table-column>
             </el-table>
+            <!-- 用户信息弹窗 -->
+            <el-dialog v-model="dialogVisible" title="用户信息">
+              <!-- 头像显示在最上面一行居中 -->
+              <div class="text-center">
+                <img
+                  :src="userInfo.headPicUrl"
+                  alt="用户头像"
+                  style="width: 100px; height: 100px"
+                />
+              </div>
+
+              <!-- 其余信息分行显示 -->
+              <div>
+                <p><strong>姓名:</strong> {{ userInfo.name }}</p>
+                <p><strong>年龄:</strong> {{ userInfo.age }}</p>
+                <p><strong>年级:</strong> {{ userInfo.grade }}</p>
+                <p><strong>籍贯:</strong> {{ userInfo.hometown }}</p>
+                <!-- 其他用户信息属性 -->
+              </div>
+              <el-button @click="dialogVisible = false">关闭</el-button>
+            </el-dialog>
           </div>
         </div>
       </div>
@@ -181,23 +199,24 @@
 <script lang="ts">
 import axiosInstance from "@/requests";
 import router from "@/router";
-import { TableColumnCtx } from "element-plus";
+import { number } from "echarts";
+import { ElMessage, TableColumnCtx } from "element-plus";
 import localforage from "localforage";
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, Ref, ref } from "vue";
 export default defineComponent({
   name: "ChildProblemView",
   components: {},
   setup() {
     interface User {
       // 定义 User 类型的属性
-      user: string;
+      name: string;
       time: string;
       status: string;
       type: string;
-      ways: string;
+      solveType: string;
       adress: string;
       degree: string;
-      describe: string;
+      question: string;
     }
     interface MyResponseData {
       id: number;
@@ -209,9 +228,28 @@ export default defineComponent({
       isBindParents: number;
       token: string;
     }
+    // 弹窗状态
+    const dialogVisible = ref(false);
+
+    // 用户信息
+    const userInfo = ref({
+      name: "",
+      age: "",
+      grade: "",
+      hometown: "",
+      // 其他用户信息属性
+      headPicUrl: "",
+    });
+
+    // 打开弹窗
+    // const openDialog = (row: any) => {
+
+    // };
     const navigateToHome = () => {
       router.push({ path: "/" });
     };
+    let url = localStorage.getItem("headUrl"); // 头像
+
     const searchUser = ref("");
     const navigateToChildProblem = () => {
       router.push("/childProblem");
@@ -225,42 +263,87 @@ export default defineComponent({
     const navigateToPersonal = () => {
       router.push("/personal");
     };
-    const handleImageClick = (row: any) => {
-      console.log(row);
+    const handleImageClick = async (row: any, $index: number) => {
+      // openDialog(row);
+      console.log(row, $index);
+      const queryParams = {
+        disabuseId: tableDataListID.value[$index],
+      };
+      const res = await axiosInstance.get(
+        "/api/disabuse/personal-information",
+        {
+          params: queryParams,
+        }
+      );
+      const res1 = await axiosInstance.post("/api/disabuse/accept", {
+        params: queryParams,
+      });
+      console.log(res1);
+      // 设置用户信息
+      userInfo.value.name = row.name;
+      userInfo.value.age = res.data.childProfileResult.age;
+      userInfo.value.grade = res.data.childProfileResult.grade;
+      userInfo.value.hometown = res.data.childProfileResult.nativePlace;
+      userInfo.value.headPicUrl = res.data.childProfileResult.headPicUrl;
+      // 打开弹窗
+      dialogVisible.value = true;
+      console.log(res);
+    };
+
+    const handlePipeiClick = async (row: any, $index: number) => {
+      console.log(row, $index);
+      const queryParams = {
+        disabuseId: tableDataListID.value[$index],
+      };
+      try {
+        const res1 = await axiosInstance.post(
+          `/api/disabuse/accept?disabuseId=${queryParams.disabuseId}`
+        );
+        ElMessage.success("匹配成功");
+        if (res1.data && res1.data.code === "00000") {
+          // 请求成功，弹窗或者进行其他操作
+          alert("匹配成功");
+        } else if (res1.data && res1.data.code === "A0400") {
+          // 请求失败，可以处理失败逻辑，比如弹窗提示错误信息
+          alert("匹配失败：" + res1.data.message);
+        }
+      } catch (error) {
+        console.log(error);
+      }
     };
     const userName = ref("");
-    const tableData = [
+    const tableData = ref([
       {
-        user: "张三",
+        name: "张三",
         time: "2021-05-01",
         status: "未匹配",
         type: "学习",
-        ways: "线上",
+        solveType: "线上",
         adress: "北京",
         degree: "一般",
-        describe: "学习不好",
+        question: "学习不好",
       },
       {
-        user: "张三",
+        name: "张三",
         time: "2021-05-01",
         status: "已解决",
         type: "学习",
-        ways: "线上",
+        solveType: "线上",
         adress: "北京",
         degree: "一般",
-        describe: "学习不好",
+        question: "学习不好",
       },
       {
-        user: "张三",
+        name: "张三",
         time: "2021-05-01",
         status: "已解决",
         type: "学习",
-        ways: "线上",
+        solveType: "线上",
         adress: "北京",
         degree: "一般",
-        describe: "学习不好",
+        question: "学习不好",
       },
-    ];
+    ]);
 
     const filterHandlerStatus = (
       value: string,
@@ -286,10 +369,47 @@ export default defineComponent({
       const property = column["property"] as keyof User; // 添加类型断言
       return row[property] === value;
     };
+    const tableDataListID: Ref<number[]> = ref([]);
     const loadData = async () => {
       try {
         const res = await axiosInstance.get("/api/disabuse-list");
         console.log(res);
+        for (
+          let index = 0;
+          index < res.data.disabuseResultList.length;
+          index++
+        ) {
+          const stander = res.data.disabuseResultList[index].isFinish;
+          tableData.value = res.data.disabuseResultList;
+          tableDataListID.value.push(res.data.disabuseResultList[index].id);
+          const key = res.data.disabuseResultList[index].isNowSolve;
+          switch (stander) {
+            case 0:
+              tableData.value[index].status = "未完成";
+              break;
+            case 1:
+              tableData.value[index].status = "已接受";
+              break;
+            case 2:
+              tableData.value[index].status = "已解决";
+              break;
+            case 3:
+              tableData.value[index].status = "已完成";
+              break;
+
+            default:
+              break;
+          }
+          switch (key) {
+            case 0:
+              tableData.value[index].degree = "无需立即执行";
+              break;
+
+            default:
+              tableData.value[index].degree = "立即执行";
+              break;
+          }
+        }
       } catch (error) {
         console.log(error);
       }
@@ -312,6 +432,7 @@ export default defineComponent({
     });
     return {
       searchUser,
+      url,
       userName,
       tableData,
       filterHandlerStatus,
@@ -324,6 +445,9 @@ export default defineComponent({
       navigateToChatPlatform,
       navigateToPersonal,
       handleImageClick,
+      handlePipeiClick,
+      dialogVisible,
+      userInfo,
     };
   },
 });

@@ -49,9 +49,6 @@
                   <el-menu-item index="1-2" @click="navigateToProblemManage"
                     >问题列表管理</el-menu-item
                   >
-                  <el-menu-item index="1-3" @click="navigateToChatPlatform"
-                    >交流互助论坛</el-menu-item
-                  >
                 </el-sub-menu>
                 <el-sub-menu
                   index="3"

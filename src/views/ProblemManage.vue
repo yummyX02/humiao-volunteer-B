@@ -9,7 +9,7 @@
           </div>
           <div class="user">
             <div class="icon-user">
-              <img src="../assets/icon-user.png" alt="" srcset="" />
+              <img :src="url" alt="" srcset="" />
             </div>
             <h4>{{ userName }}</h4>
           </div>
@@ -48,9 +48,6 @@
                   >
                   <el-menu-item index="1-2" @click="navigateToProblemManage"
                     >问题列表管理</el-menu-item
-                  >
-                  <el-menu-item index="1-3" @click="navigateToChatPlatform"
-                    >交流互助论坛</el-menu-item
                   >
                 </el-sub-menu>
                 <el-sub-menu
@@ -108,12 +105,12 @@
               }"
               border
             >
-              <el-table-column fixed prop="user" label="用户姓名" width="170" />
+              <el-table-column fixed prop="name" label="用户姓名" width="170" />
               <el-table-column prop="time" label="发布时间" width="210" />
               <el-table-column
                 prop="status"
                 label="解决状态"
-                width="120"
+                width="140"
                 :filters="[
                   { text: '未匹配', value: '未匹配' },
                   { text: '已匹配', value: '已匹配' },
@@ -127,7 +124,7 @@
               <el-table-column
                 prop="type"
                 label="疑惑类型"
-                width="120"
+                width="170"
                 :filters="[
                   { text: '心理', value: '心理' },
                   { text: '学习', value: '学习' },
@@ -139,9 +136,9 @@
                 :filter-multiple="false"
               />
               <el-table-column
-                prop="ways"
+                prop="solveType"
                 label="解决途径"
-                width="120"
+                width="170"
                 :filters="[
                   { text: '线下', value: '线下' },
                   { text: '视频', value: '视频' },
@@ -151,9 +148,8 @@
                 :filter-method="filterHandlerWays"
                 :filter-multiple="false"
               />
-              <el-table-column prop="adress" label="地点" width="170" />
-              <el-table-column prop="degree" label="紧急程度" width="170" />
-              <el-table-column prop="describe" label="具体描述" width="260" />
+              <el-table-column prop="degree" label="紧急程度" width="220" />
+              <el-table-column prop="question" label="具体描述" width="260" />
             </el-table>
           </div>
         </div>
@@ -166,7 +162,7 @@ import axiosInstance from "@/requests";
 import router from "@/router";
 import { TableColumnCtx } from "element-plus";
 import localforage from "localforage";
-import { defineComponent, onMounted, ref } from "vue";
+import { defineComponent, onMounted, Ref, ref } from "vue";
 export default defineComponent({
   name: "ProblemManage",
   components: {},
@@ -212,38 +208,39 @@ export default defineComponent({
       console.log(row);
     };
     const userName = ref("");
-    const tableData = [
+    const tableData = ref([
       {
-        user: "张三",
+        name: "张三",
         time: "2021-05-01",
         status: "未匹配",
         type: "学习",
-        ways: "线上",
+        solveType: "线上",
         adress: "北京",
         degree: "一般",
-        describe: "学习不好",
+        question: "学习不好",
       },
       {
-        user: "张三",
+        name: "张三",
         time: "2021-05-01",
         status: "已解决",
         type: "学习",
-        ways: "线上",
+        solveType: "线上",
         adress: "北京",
         degree: "一般",
-        describe: "学习不好",
+        question: "学习不好",
       },
       {
-        user: "张三",
+        name: "张三",
         time: "2021-05-01",
         status: "已解决",
         type: "学习",
-        ways: "线上",
+        solveType: "线上",
         adress: "北京",
         degree: "一般",
-        describe: "学习不好",
+        question: "学习不好",
       },
-    ];
+    ]);
+
 
     const filterHandlerStatus = (
       value: string,
@@ -269,10 +266,48 @@ export default defineComponent({
       const property = column["property"] as keyof User; // 添加类型断言
       return row[property] === value;
     };
+      const tableDataListID: Ref<number[]> = ref([]);
+      
     const loadData = async () => {
-      try {
+       try {
         const res = await axiosInstance.get("/api/disabuse-list");
         console.log(res);
+        for (
+          let index = 0;
+          index < res.data.disabuseResultList.length;
+          index++
+        ) {
+          const stander = res.data.disabuseResultList[index].isFinish;
+          tableData.value = res.data.disabuseResultList;
+          tableDataListID.value.push(res.data.disabuseResultList[index].id);
+          const key = res.data.disabuseResultList[index].isNowSolve;
+          switch (stander) {
+            case 0:
+              tableData.value[index].status = "未完成";
+              break;
+            case 1:
+              tableData.value[index].status = "已接受";
+              break;
+            case 2:
+              tableData.value[index].status = "已解决";
+              break;
+            case 3:
+              tableData.value[index].status = "已完成";
+              break;
+
+            default:
+              break;
+          }
+          switch (key) {
+            case 0:
+              tableData.value[index].degree = "无需立即执行";
+              break;
+
+            default:
+              tableData.value[index].degree = "立即执行";
+              break;
+          }
+        }
       } catch (error) {
         console.log(error);
       }
@@ -288,12 +323,15 @@ export default defineComponent({
         console.error(err);
       }
     };
+    let url = localStorage.getItem("headUrl"); // 头像
+
     onMounted(() => {
       loadData();
       fetchData();
     });
     return {
       searchUser,
+      url,
       userName,
       tableData,
       filterHandlerStatus,

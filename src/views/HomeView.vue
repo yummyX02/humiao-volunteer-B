@@ -50,9 +50,6 @@
                   <el-menu-item index="1-2" @click="navigateToProblemManage"
                     >问题列表管理</el-menu-item
                   >
-                  <el-menu-item index="1-3" @click="navigateToChatPlatform"
-                    >交流互助论坛</el-menu-item
-                  >
                 </el-sub-menu>
                 <el-sub-menu
                   index="3"
@@ -421,6 +418,7 @@ import router from "@/router";
 import localforage from "localforage";
 import axiosInstance from "@/requests";
 import { ElMessage } from "element-plus";
+import { AxiosResponse } from "axios";
 
 export default defineComponent({
   name: "HomeView",
@@ -681,10 +679,14 @@ export default defineComponent({
       const targetDate = {
         date: data.day,
       };
+
       const res = await axiosInstance.post("/api/getTodoList/b", targetDate);
-      if (res) {
+      if (res.data) {
         console.log(res.data);
         styleArea.value = res.data.theme;
+      }
+      else if(res.data === undefined){
+        styleArea.value = "暂无待办事项";
       }
     };
 
@@ -821,23 +823,27 @@ export default defineComponent({
     const addEvents = async () => {
       try {
         //将获取的日期转换字符串形式的时间戳
-        console.log(eventForm.date);
         var timestamp = Date.parse(eventForm.date);
 
-        // 将时间戳转换为秒（除以 1000）
-        var timestampInSeconds = timestamp / 1000;
+        // 创建一个 Date 对象
+        var date = new Date(timestamp);
 
-        console.log(timestampInSeconds); // 输出时间戳（以秒为单位）
-        // const timestamp = new Date(eventForm.date).getTime().toString();
-        eventForm.date = timestampInSeconds.toString();
-        console.log(eventForm.date);
+        // 获取日期的年、月和日
+        var year = date.getFullYear();
+        var month = (date.getMonth() + 1).toString().padStart(2, "0"); // 月份从 0 开始，需要加 1
+        var day = date.getDate().toString().padStart(2, "0");
+
+        // 格式化日期
+        var formattedDate = `${year}-${month}-${day}`;
+        eventForm.date = formattedDate;
 
         const res = await axiosInstance.post("/api/addTodoList/b", eventForm);
-        if (res) {
-          ElMessage.success("添加成功");
-          dialogVisible.value = false;
-          clearForm();
-        }
+
+        if (res.data === undefined) {
+          ElMessage.error("该天已有待办事项");
+        } else ElMessage.success("添加成功");
+        dialogVisible.value = false;
+        clearForm();
       } catch (err) {
         // 当出错时，此处代码运行
         console.error(err);
