@@ -694,6 +694,7 @@ export default defineComponent({
         const value = await localforage.getItem<MyResponseData>("userInfo");
         if (value) {
           userName.value = value.userName; // 更新 userName
+          url = value.headPicUrl;
           token.value = value.token;
         }
       } catch (err) {

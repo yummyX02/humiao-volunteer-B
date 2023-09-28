@@ -79,7 +79,7 @@
                   <span>用户名：</span>
                   <div class="xiugai">
                     <span>{{ user.name }}</span>
-                    <span @click="ModifyName" class="xiu">修改</span>
+                    <span @click="showNameDialog" class="xiu">修改</span>
                   </div>
                 </div>
                 <div class="info">
@@ -91,6 +91,22 @@
                   <span>{{ user.time }}</span>
                 </div>
               </div>
+              <!-- 弹窗内容 -->
+              <el-dialog v-model="nameDialogVisible" title="修改用户名">
+                <!-- 用户名修改表单 -->
+                <el-form :model="newName" label-width="80px">
+                  <el-form-item label="新用户名" prop="name">
+                    <el-input
+                      v-model="newName.name"
+                      placeholder="请输入新用户名"
+                    ></el-input>
+                  </el-form-item>
+                </el-form>
+                <template v-slot:footer>
+                  <el-button @click="nameDialogVisible = false">取消</el-button>
+                  <el-button type="primary" @click="updateName">确定</el-button>
+                </template>
+              </el-dialog>
             </div>
             <div class="right">
               <div class="info">
@@ -101,8 +117,28 @@
                 <span>手机号码：</span>
                 <div class="xiugai">
                   <span>{{ user.phone }}</span>
-                  <span @click="Modify" class="xiu">修改</span>
+                  <span @click="showTimeDialog" class="xiu">修改</span>
                 </div>
+
+                <el-dialog v-model="timeDialogVisible" title="修改手机号码">
+                  <!-- 注册时间修改表单 -->
+                  <el-form :model="newTime" label-width="80px">
+                    <el-form-item label="新手机号码" prop="phone">
+                      <el-input
+                        v-model="newTime.phone"
+                        placeholder="请输入新手机号码"
+                      ></el-input>
+                    </el-form-item>
+                  </el-form>
+                  <template v-slot:footer>
+                    <el-button @click="timeDialogVisible = false"
+                      >取消</el-button
+                    >
+                    <el-button type="primary" @click="updateTime"
+                      >确定</el-button
+                    >
+                  </template>
+                </el-dialog>
               </div>
             </div>
           </div>
@@ -143,7 +179,7 @@
                   <el-select
                     v-model="ruleForm.type"
                     placeholder="请选择擅长解决的问题"
-                  >    
+                  >
                     <el-option label="心理" value="心理" />
                     <el-option label="学习" value="学习" />
                     <el-option label="健康" value="健康" />
@@ -169,11 +205,13 @@
   </el-scrollbar>
 </template>
 <script lang="ts">
-import { pcTextArr } from 'element-china-area-data'
+import { pcTextArr } from "element-china-area-data";
 import router from "@/router";
-import { FormInstance, FormRules } from "element-plus";
+import { ElMessage, FormInstance, FormRules } from "element-plus";
 import localforage from "localforage";
 import { defineComponent, ref, reactive, onMounted } from "vue";
+import axiosInstance from "@/requests";
+import axios from "axios";
 export default defineComponent({
   name: "Personal",
   components: {},
@@ -215,11 +253,11 @@ export default defineComponent({
       phone: "12345678910",
       url: "",
     });
-    const ModifyName = () => {
-      console.log("修改用户名");
+    const ModifyName = async () => {
+      console.log("修改用户名", user.value.name);
     };
     const Modify = () => {
-      console.log("修改手机号码");
+      console.log("修改手机号码", user.value.phone);
     };
     const circleUrl = ref(
       "https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png"
@@ -285,8 +323,27 @@ export default defineComponent({
 
     const submitForm = async (formEl: FormInstance | undefined) => {
       if (!formEl) return;
-      await formEl.validate((valid, fields) => {
+      await formEl.validate(async (valid, fields) => {
         if (valid) {
+          const data = {
+            gender: 0,
+            age: 0,
+            nativePlace: "",
+            goodSolveProblems: [0],
+            sign: "",
+          };
+          console.log("submit!", ruleForm.region.toString());
+          data.age = parseInt(ruleForm.age);
+          data.nativePlace = ruleForm.region.toString();
+          data.sign = ruleForm.desc;
+          data.gender = ruleForm.sex === "男" ? 1 : 0;
+          const flag = ruleForm.type === "心理" ? 1 : 0;
+          data.goodSolveProblems.push(flag);
+          const res = await axiosInstance.post("/api/personal-center-/b", data);
+          console.log(res);
+          if (res) {
+            ElMessage.success("保存成功");
+          }
           console.log("submit!");
         } else {
           console.log("error submit!", fields);
@@ -318,8 +375,67 @@ export default defineComponent({
         console.error(err);
       }
     };
+    const loadData = async () => {
+      try {
+        const res = await axiosInstance.get("/api/my-profile/volunteer");
+        if (res) {
+          console.log(res);
+          user.value.phone = res.data.phone;
+        }
+      } catch (err) {
+        // 当出错时，此处代码运行
+        console.error(err);
+      }
+    };
+    const nameDialogVisible = ref(false);
+    const timeDialogVisible = ref(false);
+    const newName = ref({
+      name: "",
+    });
+    const newTime = ref({
+      phone: "",
+    });
+    const showNameDialog = () => {
+      // 打开用户名修改弹窗
+      newName.value.name = user.value.name; // 将当前用户名赋值给修改表单
+      nameDialogVisible.value = true;
+    };
+    const showTimeDialog = () => {
+      // 打开注册时间修改弹窗
+      newTime.value.phone = user.value.phone; // 将当前注册时间赋值给修改表单
+      timeDialogVisible.value = true;
+    };
+    const updateName = async () => {
+      // 处理用户名的更新逻辑，你可以在这里发送请求到后端更新用户名
+      user.value.name = newName.value.name;
+      const data = {
+        name: user.value.name,
+      };
+      const res = await axiosInstance.post("/api/modify-name-/b", data);
+      console.log(res);
+
+      if (res) {
+        ElMessage.success("修改成功");
+      }
+      nameDialogVisible.value = false;
+    };
+    const updateTime = async () => {
+      // 处理注册时间的更新逻辑，你可以在这里发送请求到后端更新注册时间
+      user.value.phone = newTime.value.phone;
+      const data = {
+        phone: user.value.phone,
+      };
+      const res = await axiosInstance.post("/api/modify-phone-/b", data);
+      console.log(res);
+
+      if (res) {
+        ElMessage.success("修改成功");
+      }
+      timeDialogVisible.value = false;
+    };
     onMounted(() => {
       fetchData();
+      loadData();
     });
     return {
       searchUser,
@@ -332,10 +448,18 @@ export default defineComponent({
       ruleFormRef,
       showStatus,
       pcTextArr,
+      nameDialogVisible,
+      timeDialogVisible,
+      newName,
+      newTime,
       submitForm,
       resetForm,
       Modify,
       ModifyName,
+      showNameDialog,
+      showTimeDialog,
+      updateName,
+      updateTime,
       navigateToHome,
       handleImageClick,
       navigateToChildProblem,
