@@ -366,7 +366,7 @@
                 <div class="line"></div>
                 <div class="messageBox">
                   <el-scrollbar height="170px">
-                    // 写一个动态渲染的消息列表
+                    // 一个动态渲染的消息列表
                     <div
                       v-for="(item, index) in messageList"
                       :key="index"
@@ -684,8 +684,7 @@ export default defineComponent({
       if (res.data) {
         console.log(res.data);
         styleArea.value = res.data.theme;
-      }
-      else if(res.data === undefined){
+      } else if (res.data === undefined) {
         styleArea.value = "暂无待办事项";
       }
     };
@@ -1077,20 +1076,21 @@ export default defineComponent({
               .mesInfo {
                 width: 100%;
                 height: 50px;
-                margin: 5px 5px 5px 10px;
+                margin: 5px 0 5px 10px;
                 display: flex;
                 color: #000000;
                 justify-content: flex-start;
+                align-items: flex-start;
                 .mesDetail {
                   display: flex;
                   flex-direction: column;
-                  margin-left: 10px;
+                  margin-left: 20px;
+                  justify-content: flex-start;
+                  width: 100%;
                   .top {
                     display: flex;
-                    align-items: center;
-                    margin-left: 5px;
-                    width: 300px;
                     justify-content: space-between;
+                    margin-right: 15px;
                     .name {
                       height: 20px;
                       width: 150px;
@@ -1103,23 +1103,25 @@ export default defineComponent({
                   }
                   .bottom {
                     display: flex;
+                    margin-right: 15px;
                     align-items: center;
-                    justify-content: space-between;
-                    margin-top: 10px;
-                    p {
-                      color: #888;
-                      font-size: 12px;
-                    }
-                    .num {
-                      //红色圆形
-                      width: 15px;
-                      height: 16px;
-                      border-radius: 50%;
-                      background-color: #fc1b39;
-                      text-align: center;
-                      color: #fff;
-                      font-size: 14px;
-                    }
+                        justify-content: space-between;
+                        margin-top: 10px;
+                        p {
+                          color: #888;
+                          font-size: 12px;
+                          text-align: left;
+                        }
+                        .num {
+                          //红色圆形
+                          width: 15px;
+                          height: 16px;
+                          border-radius: 50%;
+                          background-color: #fc1b39;
+                          text-align: center;
+                          color: #fff;
+                          font-size: 14px;
+                        }
                   }
                 }
               }

@@ -130,25 +130,25 @@
                     <el-radio label="女" />
                   </el-radio-group>
                 </el-form-item>
-                <el-form-item label="职业" prop="job">
-                  <el-input v-model="ruleForm.job" />
-                </el-form-item>
                 <el-form-item label="所在区域" prop="region">
-                  <el-select
-                    v-model="ruleForm.region"
+                  <el-cascader
                     placeholder="请选择所在区域"
+                    size="large"
+                    :options="pcTextArr"
+                    v-model="ruleForm.region"
                   >
-                    <el-option label="Zone one" value="shanghai" />
-                    <el-option label="Zone two" value="beijing" />
-                  </el-select>
+                  </el-cascader>
                 </el-form-item>
                 <el-form-item label="擅长解决的问题" prop="type">
                   <el-select
                     v-model="ruleForm.type"
                     placeholder="请选择擅长解决的问题"
-                  >
-                    <el-option label="Zone one" value="shanghai" />
-                    <el-option label="Zone two" value="beijing" />
+                  >    
+                    <el-option label="心理" value="心理" />
+                    <el-option label="学习" value="学习" />
+                    <el-option label="健康" value="健康" />
+                    <el-option label="兴趣" value="兴趣" />
+                    <el-option label="生活" value="生活" />
                   </el-select>
                 </el-form-item>
                 <el-form-item label="个人简介" prop="desc">
@@ -169,6 +169,7 @@
   </el-scrollbar>
 </template>
 <script lang="ts">
+import { pcTextArr } from 'element-china-area-data'
 import router from "@/router";
 import { FormInstance, FormRules } from "element-plus";
 import localforage from "localforage";
@@ -227,7 +228,6 @@ export default defineComponent({
     interface RuleForm {
       age: string;
       region: string;
-      job: string;
       delivery: boolean;
       type: string;
       sex: string;
@@ -239,7 +239,6 @@ export default defineComponent({
     const ruleForm = reactive<RuleForm>({
       age: "",
       region: "",
-      job: "",
       delivery: false,
       type: "",
       sex: "",
@@ -258,13 +257,6 @@ export default defineComponent({
         {
           required: true,
           message: "请选择你的所在区域",
-          trigger: "blur",
-        },
-      ],
-      job: [
-        {
-          required: true,
-          message: "请填写你的职业",
           trigger: "blur",
         },
       ],
@@ -307,7 +299,6 @@ export default defineComponent({
       formEl.resetFields();
     };
 
-
     const showStatus = ref(true);
     const userName = ref("");
     const fetchData = async () => {
@@ -340,6 +331,7 @@ export default defineComponent({
       formSize,
       ruleFormRef,
       showStatus,
+      pcTextArr,
       submitForm,
       resetForm,
       Modify,
@@ -446,6 +438,8 @@ export default defineComponent({
           .per {
             .info {
               margin: 10px;
+              display: flex;
+              align-items: center;
               .xiugai {
                 width: 100px;
                 display: flex;

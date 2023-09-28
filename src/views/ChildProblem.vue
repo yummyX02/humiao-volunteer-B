@@ -217,6 +217,7 @@ export default defineComponent({
       adress: string;
       degree: string;
       question: string;
+      isAnonymous: number;
     }
     interface MyResponseData {
       id: number;
@@ -275,18 +276,20 @@ export default defineComponent({
           params: queryParams,
         }
       );
-      const res1 = await axiosInstance.post("/api/disabuse/accept", {
-        params: queryParams,
-      });
-      console.log(res1);
       // 设置用户信息
-      userInfo.value.name = row.name;
-      userInfo.value.age = res.data.childProfileResult.age;
-      userInfo.value.grade = res.data.childProfileResult.grade;
-      userInfo.value.hometown = res.data.childProfileResult.nativePlace;
-      userInfo.value.headPicUrl = res.data.childProfileResult.headPicUrl;
-      // 打开弹窗
-      dialogVisible.value = true;
+      console.log(tableData.value[$index].isAnonymous);
+      if (tableData.value[$index].isAnonymous == 1) {
+        ElMessage.error("该用户选择匿名，不可查看");
+      } else {
+        userInfo.value.name = row.name;
+        userInfo.value.age = res.data.childProfileResult.age;
+        userInfo.value.grade = res.data.childProfileResult.grade;
+        userInfo.value.hometown = res.data.childProfileResult.nativePlace;
+        userInfo.value.headPicUrl = res.data.childProfileResult.headPicUrl;
+        // 打开弹窗
+        dialogVisible.value = true;
+      }
+
       console.log(res);
     };
 
@@ -322,6 +325,7 @@ export default defineComponent({
         adress: "北京",
         degree: "一般",
         question: "学习不好",
+        isAnonymous: 1,
       },
       {
         name: "张三",
